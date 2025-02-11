@@ -1,0 +1,19 @@
+title Video Anonymization
+participant AMQP\nVideo topic
+participant AMQP\nconsumer\n\& decoder
+participant AMQP\nsampling\nresize
+participant AMQP\nFace \& Car\ndetector \& blur
+participant AMQP\nencoder\n\&producer
+participant AMQP\nAnonym topic
+
+note over AMQP\nVideo topic, AMQP\nAnonym topic: Each message contains a Video Frame H.264
+loop Video pipeline in the Edge
+    AMQP\nVideo topic->AMQP\nconsumer\n\& decoder: receive a message
+    AMQP\nconsumer\n\& decoder->AMQP\nsampling\nresize: get raw image
+    AMQP\nsampling\nresize->AMQP\nsampling\nresize: apply sampling and\nresolution downgrade\naccording Instance type
+    AMQP\nsampling\nresize-->AMQP\nFace \& Car\ndetector \& blur: raw image reformat
+    AMQP\nFace \& Car\ndetector \& blur->AMQP\nFace \& Car\ndetector \& blur: Detect areas\nCreate bounding boxes\nBlur image
+    AMQP\nFace \& Car\ndetector \& blur->AMQP\nencoder\n\&producer: anonymised raw image
+    AMQP\nencoder\n\&producer->AMQP\nencoder\n\&producer: compress image H.264\n(with GPU or SW)
+    AMQP\nencoder\n\&producer->AMQP\nAnonym topic: push a message
+end
